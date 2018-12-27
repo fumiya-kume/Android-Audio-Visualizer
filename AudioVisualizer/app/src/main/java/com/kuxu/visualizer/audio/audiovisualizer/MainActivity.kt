@@ -10,6 +10,7 @@ import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.paramsen.noise.Noise
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -25,14 +26,14 @@ class MainActivity : AppCompatActivity() {
         val bufferSize = AudioRecord.getMinBufferSize(
             samplingRate,
             AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT
+            AudioFormat.ENCODING_PCM_8BIT
         )
 
         val audioRecord = AudioRecord(
             MediaRecorder.AudioSource.MIC,
             samplingRate,
             AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
+            AudioFormat.ENCODING_PCM_8BIT,
             bufferSize * 100
         )
 
@@ -48,14 +49,29 @@ class MainActivity : AppCompatActivity() {
                 override fun onPeriodicNotification(recorder: AudioRecord?) {
                     val buffer = ShortArray(bufferSize)
                     recorder?.read(buffer, 0, bufferSize)
-                    refreshGraph(chart, buffer.map { it.toFloat() })
-                    Log.d("audio", buffer.count().toString())
-                }
 
+                    val noise = Noise.real().optimized().init(buffer.count(), true)
+
+                    val fftResult = noise
+                        .fft(buffer.map { it.toFloat() }.toFloatArray())
+
+                    Log.d("", buffer.count().toString())
+
+                    refreshGraph(
+                        chart,
+                        noise
+                            .fft(buffer.map { it.toFloat() }.toFloatArray())
+                            .filterIndexed { index, fl -> index % 2 == 0 && index != 0 }
+                            .map { Math.abs(it) }
+                            .chunked(bufferSize / 10)
+                            .map { it.max() ?: Float.MIN_VALUE }
+                    )
+                }
             })
     }
 
     private fun refreshGraph(chart: LineChart, data: List<Float>) {
+
         val entities = data.mapIndexed { index, fl -> Entry(index.toFloat(), fl) }
 
         val lineDataSet = LineDataSet(entities, "タイトル")
