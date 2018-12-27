@@ -6,5 +6,6 @@
 
 # Libraries
 
-https://github.com/paramsen/noise
+https://github.com/berndporr/kiss-fft   
+https://github.com/paramsen/noise   
 https://github.com/PhilJay/MPAndroidChart/wiki
