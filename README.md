@@ -4,3 +4,7 @@
 
 研究で似たようなことをしそうなので作ってみました。
 
+# Libraries
+
+https://github.com/paramsen/noise
+https://github.com/PhilJay/MPAndroidChart/wiki
